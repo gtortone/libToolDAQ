@@ -1,0 +1,13 @@
+diff --git a/include/DAQHeader.h b/include/DAQHeader.h
+index 0e5151c..344ae37 100644
+--- a/include/DAQHeader.h
++++ b/include/DAQHeader.h
+@@ -4,7 +4,7 @@
+ #include <stddef.h>
+ #include <bitset>
+ #include <iostream>
+-
++#include <cstdint>
+ 
+ class DAQHeader{
+ 
