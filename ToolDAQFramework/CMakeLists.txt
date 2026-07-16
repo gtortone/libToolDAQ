@@ -192,7 +192,7 @@ foreach(_entry ${TDF_LIB_MAP})
 endforeach()
 
 # --- Dependencies between internal libraries -------------------------------
-# Adjust based on the symbols actually required, e.g.:
+# ToolDAQChain uses libraries from both ToolDAQFramework and ToolFrameworkCore.
 if(TARGET ToolDAQChain)
     target_link_libraries(ToolDAQChain PUBLIC
         DAQStore DAQLogging DAQDataModelBase          # ToolDAQFramework libraries

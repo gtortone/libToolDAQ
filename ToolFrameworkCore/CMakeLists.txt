@@ -193,8 +193,7 @@ foreach(ENTRY ${SRC_ENTRIES})
 endforeach()
 
 # --- Dependencies between internal libraries -----------------------------
-# Some ToolFrameworkCore libraries depend on others (e.g. ToolChain uses
-# Store/Logging/DataModelBase). Link them explicitly if needed, e.g.:
+# ToolChain uses Store/Logging/DataModelBase.
 if(TARGET ToolChain AND TARGET Store)
     target_link_libraries(ToolChain PUBLIC Store Logging DataModelBase)
 endif()
