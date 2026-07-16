@@ -81,13 +81,23 @@ FetchContent_Declare(
                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/0001-add-cstdint-to-DAQHeader.patch
 )
 
-FetchContent_GetProperties(libdaqinterface_src)
-if(NOT libdaqinterface_src_POPULATED)
+# NOTE: FetchContent's <name>_POPULATED flag is an in-memory-only global
+# property (resets every "cmake" invocation) -- checking it alone would
+# re-clone (and re-apply the patch) on every run. Instead we check DIRECTLY
+# on disk, using FetchContent's own deterministic default location.
+# Skipping FetchContent_Populate() when already present also skips
+# re-applying PATCH_COMMAND (git apply), since the patch step only runs as
+# part of the initial download/populate step, not on every configure.
+set(TDI_EXPECTED_SOURCE_DIR ${FETCHCONTENT_BASE_DIR}/libdaqinterface_src-src)
+
+if(EXISTS ${TDI_EXPECTED_SOURCE_DIR}/.git)
+    message(STATUS "libDAQInterface already downloaded, skipping re-clone/re-patch: ${TDI_EXPECTED_SOURCE_DIR}")
+    set(TDI_SOURCE_DIR ${TDI_EXPECTED_SOURCE_DIR})
+else()
     message(STATUS "Cloning ${TDI_REPO_URL} (tag: ${TDI_REPO_TAG})...")
     FetchContent_Populate(libdaqinterface_src)
+    set(TDI_SOURCE_DIR ${libdaqinterface_src_SOURCE_DIR})
 endif()
-
-set(TDI_SOURCE_DIR ${libdaqinterface_src_SOURCE_DIR})
 
 if(NOT TDI_SOURCE_DIR OR NOT EXISTS ${TDI_SOURCE_DIR})
     message(FATAL_ERROR

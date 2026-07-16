@@ -70,13 +70,20 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE
 )
 
-FetchContent_GetProperties(tooldaqframework_src)
-if(NOT tooldaqframework_src_POPULATED)
+# NOTE: FetchContent's <name>_POPULATED flag is an in-memory-only global
+# property (resets every "cmake" invocation) -- checking it alone would
+# re-clone on every run. Instead we check DIRECTLY on disk, using
+# FetchContent's own deterministic default location.
+set(TDF_EXPECTED_SOURCE_DIR ${FETCHCONTENT_BASE_DIR}/tooldaqframework_src-src)
+
+if(EXISTS ${TDF_EXPECTED_SOURCE_DIR}/.git)
+    message(STATUS "ToolDAQFramework already downloaded, skipping re-clone: ${TDF_EXPECTED_SOURCE_DIR}")
+    set(TDF_SOURCE_DIR ${TDF_EXPECTED_SOURCE_DIR})
+else()
     message(STATUS "Cloning ${TDF_REPO_URL} (tag: ${TDF_REPO_TAG})...")
     FetchContent_Populate(tooldaqframework_src)
+    set(TDF_SOURCE_DIR ${tooldaqframework_src_SOURCE_DIR})
 endif()
-
-set(TDF_SOURCE_DIR ${tooldaqframework_src_SOURCE_DIR})
 
 if(NOT TDF_SOURCE_DIR OR NOT EXISTS ${TDF_SOURCE_DIR})
     message(FATAL_ERROR
@@ -186,11 +193,11 @@ endforeach()
 
 # --- Dependencies between internal libraries -------------------------------
 # Adjust based on the symbols actually required, e.g.:
-# if(TARGET ToolDAQChain)
-#     target_link_libraries(ToolDAQChain PUBLIC
-#         DAQStore DAQLogging DAQDataModelBase          # ToolDAQFramework libraries
-#         ToolChain Store Logging DataModelBase)        # ToolFrameworkCore libraries
-# endif()
+if(TARGET ToolDAQChain)
+    target_link_libraries(ToolDAQChain PUBLIC
+        DAQStore DAQLogging DAQDataModelBase          # ToolDAQFramework libraries
+        ToolChain Store Logging DataModelBase)        # ToolFrameworkCore libraries
+endif()
 
 # --- Executables ---------------------------------------------------------------
 set(TDF_LINK_LIBS ${TDF_ALL_LIBS} ${TFC_ALL_LIBS} ${Boost_LIBRARIES} pthread)

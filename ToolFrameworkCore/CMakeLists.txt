@@ -73,13 +73,24 @@ if(POLICY CMP0169)
     cmake_policy(SET CMP0169 OLD)
 endif()
 
-FetchContent_GetProperties(toolframeworkcore_src)
-if(NOT toolframeworkcore_src_POPULATED)
+# NOTE: FetchContent's <name>_POPULATED flag is tracked via an in-memory
+# global property, NOT persisted to disk -- it resets on every single
+# "cmake" invocation, so checking it alone would call FetchContent_Populate()
+# (and therefore re-clone) every time. Instead, we check DIRECTLY on disk
+# whether the sources are already there, using FetchContent's own default,
+# deterministic location (${FETCHCONTENT_BASE_DIR}/<name>-src, where
+# FETCHCONTENT_BASE_DIR defaults to ${CMAKE_BINARY_DIR}/_deps and is set by
+# include(FetchContent) above).
+set(TFC_EXPECTED_SOURCE_DIR ${FETCHCONTENT_BASE_DIR}/toolframeworkcore_src-src)
+
+if(EXISTS ${TFC_EXPECTED_SOURCE_DIR}/.git)
+    message(STATUS "ToolFrameworkCore already downloaded, skipping re-clone: ${TFC_EXPECTED_SOURCE_DIR}")
+    set(TFC_SOURCE_DIR ${TFC_EXPECTED_SOURCE_DIR})
+else()
     message(STATUS "Cloning ${TFC_REPO_URL} (tag: ${TFC_REPO_TAG})...")
     FetchContent_Populate(toolframeworkcore_src)
+    set(TFC_SOURCE_DIR ${toolframeworkcore_src_SOURCE_DIR})
 endif()
-
-set(TFC_SOURCE_DIR ${toolframeworkcore_src_SOURCE_DIR})
 
 if(NOT TFC_SOURCE_DIR OR NOT EXISTS ${TFC_SOURCE_DIR})
     message(FATAL_ERROR
@@ -184,9 +195,9 @@ endforeach()
 # --- Dependencies between internal libraries -----------------------------
 # Some ToolFrameworkCore libraries depend on others (e.g. ToolChain uses
 # Store/Logging/DataModelBase). Link them explicitly if needed, e.g.:
-# if(TARGET ToolChain AND TARGET Store)
-#     target_link_libraries(ToolChain PUBLIC Store Logging DataModelBase)
-# endif()
+if(TARGET ToolChain AND TARGET Store)
+    target_link_libraries(ToolChain PUBLIC Store Logging DataModelBase)
+endif()
 
 # --- Linking ZeroMQ / Boost to the libraries that need them ---------------
 # Example: if a library generated above (e.g. ServiceDiscovery) uses ZMQ
