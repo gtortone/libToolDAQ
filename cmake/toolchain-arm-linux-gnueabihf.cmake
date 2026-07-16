@@ -4,6 +4,7 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 set(CMAKE_PREFIX  arm-linux-gnueabihf)
 set(CMAKE_C_COMPILER   ${CMAKE_PREFIX}-gcc)
 set(CMAKE_CXX_COMPILER ${CMAKE_PREFIX}-g++)
+set(CMAKE_STRIP        ${CMAKE_PREFIX}-strip)
 
 # set(CMAKE_SYSROOT /path/sysroot/arm)
 
