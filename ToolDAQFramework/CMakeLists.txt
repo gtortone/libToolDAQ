@@ -54,7 +54,7 @@ include_directories(${TFC_BUILD_INCLUDE_DIR})
 # --- Clone ToolDAQFramework ----------------------------------------------------
 include(FetchContent)
 
-set(TDF_REPO_URL "https://github.com/ToolDAQ/ToolDAQFramework.git"
+set(TDF_REPO_URL "https://github.com/luigi-lavitola/ToolDAQFramework.git"
     CACHE STRING "URL of the ToolDAQFramework repository")
 set(TDF_REPO_TAG "main"
     CACHE STRING "Branch/tag/commit to clone")
