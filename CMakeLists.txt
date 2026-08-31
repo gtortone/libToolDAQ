@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)   # required by FetchContent (used in ToolF
 project(libToolDAQ CXX)
 
 # --- Local CMake modules ----------------------------------------------------
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(FindDependencies)
 include(StripUtils)
 
@@ -100,7 +100,7 @@ strip_target(ToolDAQ)
 # if CMAKE_STRIP is actually available (evaluated at configure time, since
 # CMAKE_STRIP doesn't vary per-config).
 set(_TOOLDAQ_MERGE_COMMANDS
-    COMMAND bash ${CMAKE_SOURCE_DIR}/cmake/merge_static_libs.sh
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/cmake/merge_static_libs.sh
             ${CMAKE_AR}
             ${CMAKE_BINARY_DIR}/toolDAQ_merge_objs
             ${CMAKE_BINARY_DIR}/lib/libToolDAQ.a
