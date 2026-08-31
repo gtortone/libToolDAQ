@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)   # required by FetchContent
-project(ToolDAQFramework CXX)
+project(ToolDAQFramework CXX C)
 
 # --- External dependencies (ZeroMQ, Boost) -----------------------------------
 # NO LONGER searched for here: the search is centralized in the parent
