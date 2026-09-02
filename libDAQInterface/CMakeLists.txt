@@ -46,10 +46,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # --- Make executables relocatable (avoid baking absolute build paths into
 # the DT_NEEDED entries of the generated binaries) -- see the identical
 # block in ToolFrameworkCore/CMakeLists.txt for the full explanation.
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
+if(CMAKE_CROSSCOMPILING)
+    # The build-tree RPATH exists so a just-built executable can be run
+    # directly from build/bin during development. For a cross-compiled
+    # binary that's pointless (it can't run on the build host anyway), and
+    # computing it is what triggers CMake's "cannot generate a safe runtime
+    # search path" warning when the cross-toolchain's implicit directories
+    # overlap with host directories (e.g. x86_64-linux-gnu vs
+    # arm-linux-gnueabihf). Skip it entirely when cross-compiling.
+    set(CMAKE_SKIP_BUILD_RPATH TRUE)
+else()
+    set(CMAKE_SKIP_BUILD_RPATH FALSE)
+endif()
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
 # --- Clone libDAQInterface ------------------------------------------------------
