@@ -25,6 +25,6 @@ make -C build-arm install
 ## arm64
 ```
 cmake -B build-arm64
-make -j -C build-arm64 
+make -j -C build-arm64 -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-aarch64-linux-gnu.cmake
 make -C build-arm64 install
 ``` 
