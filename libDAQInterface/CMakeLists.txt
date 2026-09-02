@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)   # required by FetchContent
-project(libDAQInterface CXX)
+project(libDAQInterface CXX C)   # C needed too: reuses ToolDAQFramework's RemoteControl.cpp + sibling zstd.c
 
 # --- External dependencies (ZeroMQ, Boost) -----------------------------------
 # Searched for once in the parent CMakeLists.txt (libToolDAQ), inherited here.
@@ -47,19 +47,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # the DT_NEEDED entries of the generated binaries) -- see the identical
 # block in ToolFrameworkCore/CMakeLists.txt for the full explanation.
 if(CMAKE_CROSSCOMPILING)
-    # The build-tree RPATH exists so a just-built executable can be run
-    # directly from build/bin during development. For a cross-compiled
-    # binary that's pointless (it can't run on the build host anyway), and
-    # computing it is what triggers CMake's "cannot generate a safe runtime
-    # search path" warning when the cross-toolchain's implicit directories
-    # overlap with host directories (e.g. x86_64-linux-gnu vs
-    # arm-linux-gnueabihf). Skip it entirely when cross-compiling.
     set(CMAKE_SKIP_BUILD_RPATH TRUE)
 else()
     set(CMAKE_SKIP_BUILD_RPATH FALSE)
 endif()
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
+# See the identical block in ToolFrameworkCore/CMakeLists.txt for the full
+# explanation of why this is FALSE rather than TRUE.
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
@@ -124,6 +119,29 @@ include_directories(${TFC_SOURCE_DIR}/include)
 include_directories(${TFC_BUILD_INCLUDE_DIR})
 include_directories(${TDF_SOURCE_DIR}/include)
 include_directories(${TDF_BUILD_INCLUDE_DIR})
+
+# --- Collect libDAQInterface's own headers into <build>/include -----------
+# Unlike ToolFrameworkCore/ToolDAQFramework, these were only ever referenced
+# directly from TDI_SOURCE_DIR/include (via include_directories() above),
+# never copied into the shared build/include -- so "make install" (which
+# only installs the contents of build/include, see the top-level
+# CMakeLists.txt) never picked them up. Fixed here: copy them the same way
+# the other two subprojects do.
+set(TDI_BUILD_INCLUDE_DIR ${CMAKE_BINARY_DIR}/include)
+file(MAKE_DIRECTORY ${TDI_BUILD_INCLUDE_DIR})
+
+file(GLOB TDI_OWN_HEADERS
+    ${TDI_SOURCE_DIR}/include/*.h
+    ${TDI_SOURCE_DIR}/include/*.hpp
+)
+
+foreach(HEADER ${TDI_OWN_HEADERS})
+    file(COPY ${HEADER} DESTINATION ${TDI_BUILD_INCLUDE_DIR})
+endforeach()
+
+include_directories(${TDI_BUILD_INCLUDE_DIR})
+
+message(STATUS "libDAQInterface headers collected in: ${TDI_BUILD_INCLUDE_DIR} (${TDI_OWN_HEADERS})")
 
 # --- DAQInterface library: SHARED + STATIC -----------------------------------
 # The original Makefile explicitly compiles only src/DAQInterface.cpp
@@ -222,8 +240,10 @@ endif()
 # those from ToolDAQFramework (recompiled per executable, by choice -- no
 # shared "glue" library).
 macro(tdi_add_executable TARGET_NAME MAIN_SOURCE)
-    add_executable(${TARGET_NAME} ${MAIN_SOURCE} ${TDI_LIB_EXTRA_SOURCES})
-    target_include_directories(${TARGET_NAME} PRIVATE ${TDI_EXTRA_INCLUDE_DIRS})
+    get_filename_component(_main_source_dir ${MAIN_SOURCE} DIRECTORY)
+    file(GLOB _sibling_c_sources ${_main_source_dir}/*.c)
+    add_executable(${TARGET_NAME} ${MAIN_SOURCE} ${TDI_LIB_EXTRA_SOURCES} ${_sibling_c_sources})
+    target_include_directories(${TARGET_NAME} PRIVATE ${TDI_EXTRA_INCLUDE_DIRS} ${_main_source_dir})
     target_link_libraries(${TARGET_NAME} PRIVATE DAQInterface ${TDI_LINK_LIBS})
     strip_target(${TARGET_NAME})
 endmacro()
