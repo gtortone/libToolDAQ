@@ -27,4 +27,10 @@ make -C build-arm install
 cmake -B build-arm64 -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-aarch64-linux-gnu.cmake
 make -j -C build-arm64 
 make -C build-arm64 install
-``` 
+```
+
+## Note
+After building update library index:
+```
+ldconfig
+```
