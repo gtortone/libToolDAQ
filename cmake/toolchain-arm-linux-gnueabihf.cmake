@@ -6,7 +6,14 @@ set(CMAKE_C_COMPILER   ${CMAKE_PREFIX}-gcc)
 set(CMAKE_CXX_COMPILER ${CMAKE_PREFIX}-g++)
 set(CMAKE_STRIP        ${CMAKE_PREFIX}-strip)
 
-# set(CMAKE_SYSROOT /path/sysroot/arm)
+set(CMAKE_SYSROOT /opt/sysroot/debian-armhf)
+
+set(CMAKE_FIND_ROOT_PATH "${CMAKE_SYSROOT}")
+
+set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")
+set(ENV{PKG_CONFIG_LIBDIR}
+    "${CMAKE_SYSROOT}/usr/lib/pkgconfig:${CMAKE_SYSROOT}/usr/share/pkgconfig"
+)
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
