@@ -137,42 +137,13 @@ add_custom_target(ToolDAQ_static ALL DEPENDS ${CMAKE_BINARY_DIR}/lib/libToolDAQ.
 
 message(STATUS "libToolDAQ: libraries merged into libToolDAQ.so / libToolDAQ.a: ${TOOLDAQ_ALL_LIBS}")
 
-# =============================================================================
-# --- Installation (make install) ---------------------------------------------
-# Installs everything already collected in build/include and build/lib
-# (headers and libraries from all three subprojects, plus the combined
-# libToolDAQ.so/.a) into the standard system locations.
-#
-# When cross-compiling, the host's default prefix (/usr/local) makes no
-# sense -- we want the TARGET's conventional paths instead (e.g. /usr/lib,
-# /usr/lib/arm-linux-gnueabihf), so:
-# - CMAKE_INSTALL_PREFIX defaults to /usr instead of /usr/local (only if the
-#   user didn't explicitly override it -- CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT
-#   is TRUE exactly in that case).
-# - CMAKE_INSTALL_LIBDIR defaults to "lib/${CMAKE_LIBRARY_ARCHITECTURE}"
-#   (e.g. "lib/arm-linux-gnueabihf"), matching Debian/Ubuntu's multiarch
-#   convention -- CMAKE_LIBRARY_ARCHITECTURE is auto-detected by CMake from
-#   the cross-compiler, no need to set it manually.
-# Both must be set BEFORE include(GNUInstallDirs), which only fills in
-# defaults for variables that aren't already defined.
-#
-# For a real target sysroot (physically separate filesystem tree), combine
-# this with `cmake --install build --prefix /path/to/sysroot/usr`, or with
-# `DESTDIR=/path/to/sysroot cmake --install build` to keep the /usr prefix
-# baked into the packaging metadata while redirecting the actual file copy.
-#
-# NOTE: CMAKE_PREFIX (as set in this project's cross toolchain file) is the
-# COMPILER prefix (e.g. "arm-linux-gnueabihf", used to build compiler names
-# like "${CMAKE_PREFIX}-gcc") -- a relative string, not a filesystem path --
-# so it must NOT be used as an install destination.
-# =============================================================================
 if(CMAKE_CROSSCOMPILING)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        set(CMAKE_INSTALL_PREFIX /usr CACHE PATH
+        set(CMAKE_INSTALL_PREFIX ${CMAKE_SYSROOT}/usr CACHE PATH
             "Install path prefix (target /usr, not the host's /usr/local)" FORCE)
     endif()
     if(CMAKE_LIBRARY_ARCHITECTURE AND NOT DEFINED CMAKE_INSTALL_LIBDIR)
-        set(CMAKE_INSTALL_LIBDIR lib/${CMAKE_LIBRARY_ARCHITECTURE} CACHE PATH
+        set(CMAKE_INSTALL_LIBDIR ${CMAKE_SYSROOT}/lib/${CMAKE_LIBRARY_ARCHITECTURE} CACHE PATH
             "Library install path (Debian/Ubuntu multiarch, e.g. lib/arm-linux-gnueabihf)")
     endif()
 endif()
